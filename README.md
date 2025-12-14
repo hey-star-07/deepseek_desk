@@ -50,6 +50,8 @@ deepseek_desktop/
 
 PASOS A SEGUIR:
 
+ABRIR LA TERMINAL Y EJECUTAR LO SIGUIENTE :D
+
 ------------- 1. Crear entorno virtual----------
 
 python -m venv venv
