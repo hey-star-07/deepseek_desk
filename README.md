@@ -25,14 +25,23 @@ Proyecto para la materia de Inteligencia Artificial.
 
 deepseek_desktop/
 ├── main.py                    # Aplicación principal 
+
 ├── deepseek_local.py          # Lógica OFFLINE del modelo
+
 ├── gui_app.py                 # Interfaz gráfica
-├── download_model.py          # Descargador (solo con internet) (NUEVO ARCHIVO)
-├── start_offline.bat          # Iniciador offline (Windows) (NUEVO ARCHIVO)
-├── update_config_offline.py   # Configurador offline (NUEVO ARCHIVO)
+
+├── download_model.py          # Descargador (solo con internet) 
+
+├── start_offline.bat          # Iniciador offline (Windows) 
+
+├── update_config_offline.py   # Configurador offline 
+
 ├── config.json               # Configuración
+
 ├── README.md                 # Documentación
+
 ├── models/                   # Modelos descargados 
+
 ├── data/                     # Datos y cache
 
 (SE DEBE CREAR LAS CARPETA models y data MANUALMENTE)
@@ -40,6 +49,7 @@ deepseek_desktop/
 ## Instalación
 
 PASOS A SEGUIR:
+
 ------------- 1. Crear entorno virtual----------
 
 python -m venv venv
