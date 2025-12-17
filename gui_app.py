@@ -1,6 +1,7 @@
 """
 Interfaz gráfica de DeepSeek Desktop
 Usando CustomTkinter para mejor apariencia
+Versión simplificada sin parámetros técnicos en UI
 """
 
 import customtkinter as ctk
@@ -17,13 +18,17 @@ import os
 from deepseek_local import DeepSeekModel
 
 class DeepSeekApp:
-    """Aplicación principal con interfaz gráfica"""
+    """Aplicación principal con interfaz gráfica simplificada"""
     
     def __init__(self, config):
         self.config = config
         self.model = None
         self.is_generating = False
         self.current_stream = None
+        
+        # Parámetros fijos (ocultos al usuario)
+        self.temperature = config.get("temperature", 0.7)
+        self.max_length = config.get("max_length", 512)
         
         # Configurar apariencia
         ctk.set_appearance_mode(config.get("theme", "dark"))
@@ -39,8 +44,6 @@ class DeepSeekApp:
         
         # Variables de estado
         self.streaming_var = ctk.BooleanVar(value=True)
-        self.temperature_var = ctk.DoubleVar(value=config.get("temperature", 0.7))
-        self.max_length_var = ctk.IntVar(value=config.get("max_length", 512))
         
         # Construir interfaz
         self._create_widgets()
@@ -82,7 +85,7 @@ class DeepSeekApp:
         # Estado del modelo
         self.status_label = ctk.CTkLabel(
             self.header_frame,
-            text="🔄 Cargando modelo...",
+            text="Cargando modelo...",
             font=("Arial", 12),
             text_color="yellow"
         )
@@ -167,7 +170,7 @@ class DeepSeekApp:
         # Info del modelo
         self.model_info_text = ctk.CTkTextbox(
             self.sidebar_frame,
-            height=100,
+            height=150,
             font=("Arial", 10),
             state="disabled"
         )
@@ -176,50 +179,10 @@ class DeepSeekApp:
         # Controles
         self.controls_label = ctk.CTkLabel(
             self.sidebar_frame,
-            text="📊 Parámetros",
+            text="📊 Opciones",
             font=("Arial", 14, "bold")
         )
         self.controls_label.pack(anchor="w", padx=15, pady=(15, 5))
-        
-        # Temperature
-        self.temp_frame = ctk.CTkFrame(self.sidebar_frame)
-        self.temp_frame.pack(fill="x", padx=15, pady=5)
-        
-        self.temp_label = ctk.CTkLabel(
-            self.temp_frame,
-            text=f"Temperatura: {self.temperature_var.get():.1f}",
-            font=("Arial", 11)
-        )
-        self.temp_label.pack(anchor="w")
-        
-        self.temp_slider = ctk.CTkSlider(
-            self.temp_frame,
-            from_=0.1,
-            to=1.0,
-            variable=self.temperature_var,
-            command=self._update_temp_label
-        )
-        self.temp_slider.pack(fill="x", pady=(0, 5))
-        
-        # Longitud máxima
-        self.length_frame = ctk.CTkFrame(self.sidebar_frame)
-        self.length_frame.pack(fill="x", padx=15, pady=5)
-        
-        self.length_label = ctk.CTkLabel(
-            self.length_frame,
-            text=f"Longitud: {self.max_length_var.get()}",
-            font=("Arial", 11)
-        )
-        self.length_label.pack(anchor="w")
-        
-        self.length_slider = ctk.CTkSlider(
-            self.length_frame,
-            from_=64,
-            to=1024,
-            variable=self.max_length_var,
-            command=self._update_length_label
-        )
-        self.length_slider.pack(fill="x", pady=(0, 5))
         
         # Streaming
         self.stream_checkbox = ctk.CTkCheckBox(
@@ -243,23 +206,6 @@ class DeepSeekApp:
         )
         self.save_button.pack(fill="x", pady=2)
         
-        self.load_button = ctk.CTkButton(
-            self.action_frame,
-            text="📂 Cargar Chat",
-            command=self.load_conversation,
-            fg_color="blue",
-            hover_color="dark blue"
-        )
-        self.load_button.pack(fill="x", pady=2)
-        
-        self.export_button = ctk.CTkButton(
-            self.action_frame,
-            text="📄 Exportar TXT",
-            command=self.export_conversation,
-            fg_color="orange",
-            hover_color="dark orange"
-        )
-        self.export_button.pack(fill="x", pady=2)
         
         self.quit_button = ctk.CTkButton(
             self.action_frame,
@@ -322,7 +268,12 @@ class DeepSeekApp:
         info_text = f"""Modelo: {self.config['model']}
 Parámetros: ~{info['parameters']:,}
 Dispositivo: {info['device'].upper()}
-Tiempo carga: {info['load_time']:.1f}s"""
+Tiempo carga: {info['load_time']:.1f}s
+
+Configuración:
+• Temperatura: {self.temperature}
+• Longitud: {self.max_length} tokens
+• Streaming: {'Sí' if self.streaming_var.get() else 'No'}"""
         
         self.model_info_text.configure(state="normal")
         self.model_info_text.delete("1.0", "end")
@@ -340,14 +291,6 @@ Tiempo carga: {info['load_time']:.1f}s"""
             text_color="red"
         )
         messagebox.showerror("Error", f"No se pudo cargar el modelo:\n{error_msg}")
-    
-    def _update_temp_label(self, value):
-        """Actualizar etiqueta de temperatura"""
-        self.temp_label.configure(text=f"Temperatura: {float(value):.1f}")
-    
-    def _update_length_label(self, value):
-        """Actualizar etiqueta de longitud"""
-        self.length_label.configure(text=f"Longitud: {int(value)}")
     
     def _on_enter_pressed(self, event):
         """Manejar Enter para enviar mensaje"""
@@ -388,8 +331,8 @@ Tiempo carga: {info['load_time']:.1f}s"""
         try:
             response = self.model.generate(
                 prompt=prompt,
-                max_length=self.max_length_var.get(),
-                temperature=self.temperature_var.get()
+                max_length=self.max_length,
+                temperature=self.temperature
             )
             
             # Mostrar respuesta en UI
@@ -411,8 +354,8 @@ Tiempo carga: {info['load_time']:.1f}s"""
             full_response = ""
             for token in self.model.generate_streaming(
                 prompt=prompt,
-                max_length=self.max_length_var.get(),
-                temperature=self.temperature_var.get()
+                max_length=self.max_length,
+                temperature=self.temperature
             ):
                 full_response += token
                 self.root.after(0, lambda t=token: self._append_to_streaming(t))
@@ -535,8 +478,8 @@ Tiempo carga: {info['load_time']:.1f}s"""
         """Salir de la aplicación"""
         if messagebox.askyesno("Salir", "¿Estás seguro de querer salir?"):
             # Guardar configuración
-            self.config["temperature"] = self.temperature_var.get()
-            self.config["max_length"] = self.max_length_var.get()
+            self.config["temperature"] = self.temperature
+            self.config["max_length"] = self.max_length
             
             with open('config.json', 'w', encoding='utf-8') as f:
                 json.dump(self.config, f, indent=2, ensure_ascii=False)
